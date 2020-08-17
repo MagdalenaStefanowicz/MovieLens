@@ -3,14 +3,15 @@ title: "MovieLens"
 author: "Magdalena Stefanowicz"
 date: '2020-08-10'
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 # Introduction
 
-The goal of the project is to create a recommendation system by training a machine learning algorithm using the inputs in one subset to predict movie ratings in validation set.
+This project was done for a course: HarvardX: PH125.9x Data Science: Capstone in HarvardX Professional Certificate Program in Data Science. 
 
+The goal of the project is to create a recommendation system by training a machine learning algorithm using the inputs in one subset to predict movie ratings in validation set. 
 The recommendation system is made for dataset MovieLens 10M which contains 10 million ratings and 100,000 tag applications applied to 10,000 movies by 72,000 users.
 
 The following key steps are performed in the study:
@@ -25,7 +26,7 @@ Is it aimed to create a recommendation model with RMSE < 0.86490.
 
 # Analysis
 
-## Let's set the data 
+## Data setup
 
 First, let's install needed packages and download MovieLens 10M dataset from the grouplens.org.  
 
@@ -100,9 +101,9 @@ test <- test %>%
   semi_join(train, by = "userId")
 ```
 
-## Let's analyze the data 
+## Data analyzis
 
-Edx dataset has 9 millon rows which corresponds to 90% of the total Movielens 10M dataset. Each row is a rating made by one user for a movie. 
+Edx dataset has 9 millon rows which corresponds to 90% of the total Movielens 10M dataset. Each row is a rating made by one user for a movie. Data 
 
 ```{r}
 edx %>% as_tibble() %>% head()
@@ -130,7 +131,7 @@ edx %>%
   summarize(avg_no_rating_per_movie = round(nrow(edx)/n_distinct(movieId)), avg_no_rating_per_user = round(nrow(edx)/n_distinct(userId)))
 ```
 
-However some users rate more movies then others and some movies get rated more than others. There are also a few movies which were rated only 1 time. Movies with both obscure ratings and very low number of ratings might have an effect on the prediction. 
+However some users rate more movies then others and some movies get rated more than others. There are also a few movies which were rated only 1 time. Movies with both obscure ratings and very low number of ratings might effect the prediction. 
  
 ```{r}
   par(mfrow = c(1,2))
@@ -152,7 +153,7 @@ However some users rate more movies then others and some movies get rated more t
 
 The next two plots show rating distribution for all movies and movies rated only once, correspondingly. 
 Looking at the results for all movies, we can see that most movies have higher ratings (above 2.5). There is also a strong preference to rate movies with full scores rather then half scores.
-Distribution of ratings for movies with only one rating differs significantly from rating distribution for all movies. Movies with one rating are more likely to get extreme ratings like 0.5 - 1.5 and to get half scores. It will be difficult to predict future rating for these movies.
+Distribution of ratings for movies with only one rating differs significantly from rating distribution for all movies. Movies with one rating are more likely to receive extremely low ratings and to receive half scores. It will be difficult to predict future rating for these movies.
 
 ```{r}
 par(mfrow = c(1,2))
@@ -170,7 +171,7 @@ edx %>%
   ggtitle("Rating distribution for movies with one rate")
 ```
 
-The next plot shows the average rating for users who have rated over 100 movies. User who rate many movies tend to give ratings that are not extreme. Also they are more likely to rate higher then lower (above 2.5).
+The next plot shows the average rating for users who have rated over 100 movies. User who rate many movies tend to give non-extreme ratings. Also they are more likely to rate higher then lower (above 2.5).
 
 ```{r}
 edx %>% 
@@ -225,7 +226,7 @@ Consequently, movie effect, user effect and regularization will be applied to th
 
 # Results
 
-## Let’s build a recommendation system.
+## Naive prediction
 
 First, let's predict the same rating for all movies regardless of user which is the average of all ratings.  
 
@@ -239,6 +240,8 @@ Let's check RMSE for this basic model.
 ```{r}
 RMSE(test$rating, movie_mean)
 ```
+
+## Movie effect
 
 Secondly, let's add movie effects to our model as some movies are rated higher then others. We can use least squares to estimate the movie effect (b_i), but instead we estimate b_i by the average of difference between predicted rating and average rating for each movie . 
 
@@ -256,6 +259,8 @@ predicted_ratings <- movie_mean + test %>%
   .$b_i
 RMSE(predicted_ratings, test$rating)
 ```
+
+## User effect
 
 As some users tend to give low ratings while others are more eager to rate movies high. Let's call it user effect (b_u) and add it to the prediction. B_u can be computed as the average of the difference between estimated prediction, average rating and the movie effect for each movie. 
 
@@ -281,6 +286,8 @@ Let's check RMSE for the model so far. Including movie effect and user effect.
 ```{r}
 RMSE(predicted_ratings, test$rating)
 ```
+
+## Regularization
 
 Further improvements of the recommendation can be made. Let's try regularization. We're going to penalize large estimates made on small sample sizes. First let's use cross validation to choose the best lambda.  
 
@@ -318,7 +325,7 @@ The plot above shows that lambda 4.75 is the optimal penalty. RMSE for the regul
 rmses %>% min(rmses)
 ```
 
-## Let's evaluate the final RMSE base on the validation set.
+## Final RMSE based on the validation set.
 
 ```{r}
 movie_mean <- mean(edx$rating)
@@ -342,7 +349,7 @@ predicted_ratings <- validation %>%
 RMSE(predicted_ratings, validation$rating)
 ```
 
-#Conclusion
+# Conclusion
 
 A machine learning algorithm was built in order to predict movie ratings with MovieLens 10M dataset. The regularized effects of unique users and movies were applied to the model. 
 
